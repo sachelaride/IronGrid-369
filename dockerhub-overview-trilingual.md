@@ -4,88 +4,72 @@
 
 - Portugues: https://sachelaride.github.io/IronGrid-369/index.html
 - English: https://sachelaride.github.io/IronGrid-369/index-en.html
-- Espanol: https://sachelaride.github.io/IronGrid-369/index-es.html
-- Deutsch: https://sachelaride.github.io/IronGrid-369/index-de.html
-- Francais: https://sachelaride.github.io/IronGrid-369/index-fr.html
 
 ---
 
-## Idiomas / Languages / Idiomas / Sprachen
+## Idiomas / Languages
 
 - [Portugues](#portugues)
 - [English](#english)
-- [Espanol](#espanol)
-- [Deutsch](#deutsch)
-- [Francais](#francais)
 
 ---
 
 ## Portugues
 
-Edicao limitada do IronGrid, disponibilizada gratuitamente para a comunidade por meio do Docker Hub.
+Imagem Docker oficial da edicao limitada do IronGrid.
 
-O IronGrid e uma plataforma voltada para monitoramento e gerenciamento de infraestrutura de redes e servidores, reunindo recursos como SNMP, Syslog, inventario de ativos, IPAM, metricas, Grafana e integracao com RustDesk.
+- Imagem: `sachelaride/irongrid-limited-369:latest`
+- Limite: 369 ativos cadastrados
+- Limite Grafana: 69 graficos/painéis gerados
+- Inclui frontend, backend, agentes para download e integrações do IronGrid
 
-A IronGrid Limited 369 e uma edicao funcional, preparada para utilizacao em ambientes reais, com limites especificos em relacao a versao completa.
+## Importante
 
-### Imagem Docker
+O Docker Hub hospeda apenas a imagem da aplicacao. Para instalar em um servidor novo, voce precisa criar tambem um `docker-compose.yml` e um arquivo `.env`.
 
-A imagem oficial da edicao limitada esta disponivel no Docker Hub:
-
-```text
-sachelaride/irongrid-limited-369
-```
-
-Tags disponiveis:
+A forma mais facil e usar o pacote auxiliar `irongrid-limited-369-20260814`, que contem:
 
 ```text
-sachelaride/irongrid-limited-369:latest
-sachelaride/irongrid-limited-369:limited-369
+.env.example
+README_INSTALACAO.md
+README_DOCKERHUB.md
+docker-compose.yml
+manage.sh
 ```
 
-Para ambientes de producao que exigem previsibilidade, prefira uma tag especifica:
+O arquivo `irongrid-limited-369.tar` nao e necessario quando a imagem vem do Docker Hub.
 
-```yaml
-image: sachelaride/irongrid-limited-369:limited-369
-```
+## Instalacao rapida com pacote auxiliar
 
-Para acompanhar a versao mais recente:
-
-```yaml
-image: sachelaride/irongrid-limited-369:latest
-```
-
-**Atencao:** a tag `latest` podera receber atualizacoes futuras.
-
-### O que esta incluido
-
-- frontend da aplicacao
-- backend
-- gerenciamento de ativos
-- monitoramento de rede
-- monitoramento SNMP
-- Syslog
-- agentes para download
-- integracoes do IronGrid
-- integracao com Grafana
-- integracao com RustDesk
-- recursos de inventario e gerenciamento de infraestrutura
-
-### Requisitos
-
-A instalacao deve ser realizada em um servidor Linux com suporte ao Docker.
+No servidor Linux:
 
 ```bash
 sudo apt update
 sudo apt install -y docker.io docker-compose-plugin openssl
 sudo systemctl enable --now docker
-docker --version
-docker compose version
 ```
 
-### Instalacao rapida
+Copie os arquivos auxiliares para o servidor, por exemplo:
 
-Crie o diretorio da instalacao:
+```bash
+sudo mkdir -p /opt/irongrid
+sudo cp docker-compose.yml manage.sh .env.example README_INSTALACAO.md /opt/irongrid/
+cd /opt/irongrid
+chmod +x manage.sh
+./manage.sh install
+docker compose pull
+./manage.sh up
+```
+
+Acesse:
+
+```text
+http://IP_DO_SERVIDOR:3001
+```
+
+## Instalacao manual sem pacote auxiliar
+
+Crie uma pasta no servidor:
 
 ```bash
 sudo mkdir -p /opt/irongrid
@@ -94,44 +78,30 @@ cd /opt/irongrid
 
 Crie o arquivo `.env`:
 
-```bash
-nano .env
-```
-
-Use senhas e tokens proprios e fortes:
-
 ```env
 NODE_ENV=production
 DEV_PORT=3001
 DEBUG=false
-
 IRONGRID_EDITION=limited
+IRONGRID_ASSET_LIMIT=369
 IRONGRID_GRAFANA_CHART_LIMIT=69
-
 IRONGRID_HTTP_PORT=3001
 IRONGRID_SYSLOG_PORT=514
-
 POSTGRES_USER=irongrid
 POSTGRES_PASSWORD=TROQUE_POR_SENHA_FORTE
 POSTGRES_DB=irongrid_db
-
 DATABASE_URL=postgresql://irongrid:TROQUE_POR_SENHA_FORTE@db:5432/irongrid_db?schema=public
 SYSLOG_DATABASE_URL=postgresql://irongrid:TROQUE_POR_SENHA_FORTE@db:5432/irongrid_db?schema=public
-
 JWT_SECRET=TROQUE_POR_SEGREDO_FORTE_32_CHARS_OU_MAIS
 AGENT_INGEST_TOKEN=TROQUE_POR_TOKEN_FORTE_16_CHARS_OU_MAIS
-
 ALLOWED_ORIGIN=http://IP_DO_SERVIDOR:3001
-
 INFLUX_URL=http://influxdb:8086
 INFLUX_INIT_USERNAME=admin
 INFLUX_INIT_PASSWORD=TROQUE_POR_SENHA_FORTE_INFLUX
 INFLUX_ORG=irongrid
 INFLUX_BUCKET=metrics
 INFLUX_TOKEN=TROQUE_POR_TOKEN_FORTE_INFLUX
-
 GRAFANA_PORT=3000
-
 RUSTDESK_HBBS_PORT=21115
 RUSTDESK_RENDEZVOUS_TCP_PORT=21116
 RUSTDESK_RENDEZVOUS_UDP_PORT=21116
@@ -140,167 +110,275 @@ RUSTDESK_WEB_CLIENT_PORT=21118
 RUSTDESK_RELAY_WEB_PORT=21119
 ```
 
-Crie o arquivo `docker-compose.yml` conforme o tutorial completo:
+Crie o arquivo `docker-compose.yml`:
 
-https://sachelaride.github.io/IronGrid-369/index.html
+```yaml
+name: irongrid
 
-Valide e inicie:
+services:
+  app:
+    image: sachelaride/irongrid-limited-369:latest
+    container_name: irongrid-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${IRONGRID_HTTP_PORT:-3001}:3001"
+      - "${IRONGRID_SYSLOG_PORT:-514}:1514/udp"
+    depends_on:
+      db:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    networks:
+      - irongrid
+
+  db:
+    image: postgres:15-alpine
+    container_name: irongrid-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-irongrid}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-irongrid_db}
+    volumes:
+      - irongrid-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - irongrid
+
+  influxdb:
+    image: influxdb:2.0
+    container_name: irongrid-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_INIT_USERNAME:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_INIT_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-irongrid}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-metrics}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+    volumes:
+      - irongrid-influx-data:/var/lib/influxdb2
+      - irongrid-influx-config:/etc/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - irongrid
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: irongrid-grafana
+    restart: unless-stopped
+    profiles: ["grafana", "full"]
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - irongrid-grafana-data:/var/lib/grafana
+    networks:
+      - irongrid
+
+  rustdesk-hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: irongrid-hbbs
+    restart: unless-stopped
+    profiles: ["remote", "full"]
+    command: hbbs -r rustdesk-hbbr:21117
+    volumes:
+      - irongrid-rustdesk-data:/root
+    ports:
+      - "${RUSTDESK_HBBS_PORT:-21115}:21115"
+      - "${RUSTDESK_RENDEZVOUS_TCP_PORT:-21116}:21116/tcp"
+      - "${RUSTDESK_RENDEZVOUS_UDP_PORT:-21116}:21116/udp"
+      - "${RUSTDESK_WEB_CLIENT_PORT:-21118}:21118"
+    depends_on:
+      - rustdesk-hbbr
+    networks:
+      - irongrid
+
+  rustdesk-hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: irongrid-hbbr
+    restart: unless-stopped
+    profiles: ["remote", "full"]
+    command: hbbr
+    volumes:
+      - irongrid-rustdesk-data:/root
+    ports:
+      - "${RUSTDESK_RELAY_PORT:-21117}:21117"
+      - "${RUSTDESK_RELAY_WEB_PORT:-21119}:21119"
+    networks:
+      - irongrid
+
+networks:
+  irongrid:
+    name: irongrid-net
+
+volumes:
+  irongrid-pg-data:
+  irongrid-influx-data:
+  irongrid-influx-config:
+  irongrid-grafana-data:
+  irongrid-rustdesk-data:
+```
+
+Suba a stack:
 
 ```bash
-docker compose config
 docker compose pull
 docker compose up -d
-docker compose ps
 ```
 
-Para iniciar tambem Grafana e RustDesk:
+Para subir com Grafana e RustDesk:
 
 ```bash
-docker compose pull
 docker compose --profile full up -d
-docker compose ps
 ```
 
-### Acesso
+## Chave publica RustDesk
 
-Abra no navegador:
-
-```text
-http://IP_DO_SERVIDOR:3001
-```
-
-Login inicial:
-
-```text
-Usuario: admin
-Senha: admin
-```
-
-### RustDesk
-
-Quando o IronGrid for iniciado com o perfil `remote` ou `full`, obtenha a chave publica:
+Depois de subir com o perfil `remote` ou `full`:
 
 ```bash
 docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
 cat ./id_ed25519.pub
 ```
 
-A chave publica deve ser usada na tela Gestao de Agentes do IronGrid. A chave privada `id_ed25519` deve permanecer protegida no servidor.
+Use essa chave na tela `Gestao de agentes`.
 
-### Gerenciamento basico
+## Gerenciamento basico
 
 ```bash
 docker compose ps
 docker compose logs -f --tail=200 app
 docker compose restart
 docker compose down
+```
+
+## Suporte
+
+German Sachelaride  
+Email: sachelaride@gmail.com  
+Fone: (67) 9.9859-9051
+
+Doacoes PIX: 558252491-68 ou sachelaride@gmail.com
+
+## Modos de execucao
+
+Instalacao essencial, sem Grafana e sem RustDesk:
+
+```bash
 docker compose up -d
+```
+
+Com Grafana:
+
+```bash
+docker compose --profile grafana up -d
+```
+
+Com RustDesk:
+
+```bash
+docker compose --profile remote up -d
+```
+
+Completo, com Grafana e RustDesk:
+
+```bash
 docker compose --profile full up -d
 ```
 
-### Apoie o projeto
-
-O desenvolvimento e a manutencao do IronGrid demandam tempo, infraestrutura, equipamentos para testes e recursos para continuidade do projeto.
-
-Contribuicao via PIX:
+Portas RustDesk usadas no servidor:
 
 ```text
-PIX CPF: 558252491-68
-PIX E-mail: sachelaride@gmail.com
+21115/tcp
+21116/tcp
+21116/udp
+21117/tcp
+21118/tcp
+21119/tcp
 ```
 
-Contribuicao internacional em USD:
+Depois que o RustDesk estiver em execucao, veja a chave publica com:
 
-```text
-Beneficiario: GERMAN DE OLIVEIRA SACHELARIDE
-Banco beneficiario: Banco Inter S.A.
-SWIFT: ITEMBRSP
-IBAN: BR2800416968000010011233613C1
-Banco intermediario: JP Morgan Chase N.A.
-SWIFT banco intermediario: CHASUS33
-ABA: 021000021
-Account: 360556937
+```bash
+docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub && cat ./id_ed25519.pub
 ```
-
-### Suporte e contato
-
-German Sachelaride - Analista de Network
-
-```text
-E-mail: sachelaride@gmail.com
-Telefone: (67) 9.9859-9051
-```
-
-IronGrid Limited 369 - Monitoramento, Gestao, SNMP, Syslog, Grafana e RustDesk.
 
 ---
 
 ## English
 
-IronGrid Limited 369 is a limited edition of IronGrid, made available for free to the community through Docker Hub.
+Official Docker image for the limited edition of IronGrid.
 
-IronGrid is a platform for monitoring and managing network and server infrastructure. It brings together SNMP, Syslog, asset inventory, IPAM, metrics, Grafana, and RustDesk integration.
+- Image: `sachelaride/irongrid-limited-369:latest`
+- Limit: 369 registered assets
+- Grafana limit: 69 generated charts/panels
+- Includes frontend, backend, downloadable agents, and IronGrid integrations
 
-IronGrid Limited 369 is a functional edition prepared for real environments, with specific limits compared to the full version.
+## Important
 
-### Docker Image
+Docker Hub hosts only the application image. To install IronGrid on a new server, you also need to create a `docker-compose.yml` file and a `.env` file.
 
-Official limited edition image:
-
-```text
-sachelaride/irongrid-limited-369
-```
-
-Available tags:
+The easiest method is to use the auxiliary package `irongrid-limited-369-20260814`, which contains:
 
 ```text
-sachelaride/irongrid-limited-369:latest
-sachelaride/irongrid-limited-369:limited-369
+.env.example
+README_INSTALACAO.md
+README_DOCKERHUB.md
+docker-compose.yml
+manage.sh
 ```
 
-For production environments that require predictability, prefer the fixed edition tag:
+The file `irongrid-limited-369.tar` is not required when the image is pulled from Docker Hub.
 
-```yaml
-image: sachelaride/irongrid-limited-369:limited-369
-```
+## Quick installation with auxiliary package
 
-To follow the most recent version:
-
-```yaml
-image: sachelaride/irongrid-limited-369:latest
-```
-
-**Warning:** the `latest` tag may receive future updates.
-
-### What is included
-
-- application frontend
-- backend
-- asset management
-- network monitoring
-- SNMP monitoring
-- Syslog
-- downloadable agents
-- IronGrid integrations
-- Grafana integration
-- RustDesk integration
-- inventory and infrastructure management features
-
-### Requirements
-
-Installation must be performed on a Linux server with Docker support.
+On the Linux server:
 
 ```bash
 sudo apt update
 sudo apt install -y docker.io docker-compose-plugin openssl
 sudo systemctl enable --now docker
-docker --version
-docker compose version
 ```
 
-### Quick Installation
+Copy the auxiliary files to the server, for example:
 
-Create the installation directory:
+```bash
+sudo mkdir -p /opt/irongrid
+sudo cp docker-compose.yml manage.sh .env.example README_INSTALACAO.md /opt/irongrid/
+cd /opt/irongrid
+chmod +x manage.sh
+./manage.sh install
+docker compose pull
+./manage.sh up
+```
+
+Access:
+
+```text
+http://SERVER_IP:3001
+```
+
+## Manual installation without auxiliary package
+
+Create a folder on the server:
 
 ```bash
 sudo mkdir -p /opt/irongrid
@@ -309,44 +387,30 @@ cd /opt/irongrid
 
 Create the `.env` file:
 
-```bash
-nano .env
-```
-
-Use your own strong passwords and tokens:
-
 ```env
 NODE_ENV=production
 DEV_PORT=3001
 DEBUG=false
-
 IRONGRID_EDITION=limited
+IRONGRID_ASSET_LIMIT=369
 IRONGRID_GRAFANA_CHART_LIMIT=69
-
 IRONGRID_HTTP_PORT=3001
 IRONGRID_SYSLOG_PORT=514
-
 POSTGRES_USER=irongrid
-POSTGRES_PASSWORD=REPLACE_WITH_STRONG_PASSWORD
+POSTGRES_PASSWORD=CHANGE_TO_STRONG_PASSWORD
 POSTGRES_DB=irongrid_db
-
-DATABASE_URL=postgresql://irongrid:REPLACE_WITH_STRONG_PASSWORD@db:5432/irongrid_db?schema=public
-SYSLOG_DATABASE_URL=postgresql://irongrid:REPLACE_WITH_STRONG_PASSWORD@db:5432/irongrid_db?schema=public
-
-JWT_SECRET=REPLACE_WITH_STRONG_SECRET_32_CHARS_OR_MORE
-AGENT_INGEST_TOKEN=REPLACE_WITH_STRONG_TOKEN_16_CHARS_OR_MORE
-
+DATABASE_URL=postgresql://irongrid:CHANGE_TO_STRONG_PASSWORD@db:5432/irongrid_db?schema=public
+SYSLOG_DATABASE_URL=postgresql://irongrid:CHANGE_TO_STRONG_PASSWORD@db:5432/irongrid_db?schema=public
+JWT_SECRET=CHANGE_TO_STRONG_SECRET_32_CHARS_OR_MORE
+AGENT_INGEST_TOKEN=CHANGE_TO_STRONG_TOKEN_16_CHARS_OR_MORE
 ALLOWED_ORIGIN=http://SERVER_IP:3001
-
 INFLUX_URL=http://influxdb:8086
 INFLUX_INIT_USERNAME=admin
-INFLUX_INIT_PASSWORD=REPLACE_WITH_STRONG_INFLUX_PASSWORD
+INFLUX_INIT_PASSWORD=CHANGE_TO_STRONG_INFLUX_PASSWORD
 INFLUX_ORG=irongrid
 INFLUX_BUCKET=metrics
-INFLUX_TOKEN=REPLACE_WITH_STRONG_INFLUX_TOKEN
-
+INFLUX_TOKEN=CHANGE_TO_STRONG_INFLUX_TOKEN
 GRAFANA_PORT=3000
-
 RUSTDESK_HBBS_PORT=21115
 RUSTDESK_RENDEZVOUS_TCP_PORT=21116
 RUSTDESK_RENDEZVOUS_UDP_PORT=21116
@@ -355,591 +419,213 @@ RUSTDESK_WEB_CLIENT_PORT=21118
 RUSTDESK_RELAY_WEB_PORT=21119
 ```
 
-Create the `docker-compose.yml` file according to the full tutorial:
+Create the `docker-compose.yml` file:
 
-https://sachelaride.github.io/IronGrid-369/index-en.html
+```yaml
+name: irongrid
 
-Validate and start:
+services:
+  app:
+    image: sachelaride/irongrid-limited-369:latest
+    container_name: irongrid-app
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${IRONGRID_HTTP_PORT:-3001}:3001"
+      - "${IRONGRID_SYSLOG_PORT:-514}:1514/udp"
+    depends_on:
+      db:
+        condition: service_healthy
+      influxdb:
+        condition: service_healthy
+    networks:
+      - irongrid
+
+  db:
+    image: postgres:15-alpine
+    container_name: irongrid-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-irongrid}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-irongrid_db}
+    volumes:
+      - irongrid-pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - irongrid
+
+  influxdb:
+    image: influxdb:2.0
+    container_name: irongrid-influxdb
+    restart: unless-stopped
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_INIT_USERNAME:-admin}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_INIT_PASSWORD}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-irongrid}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-metrics}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN}
+    volumes:
+      - irongrid-influx-data:/var/lib/influxdb2
+      - irongrid-influx-config:/etc/influxdb2
+    healthcheck:
+      test: ["CMD", "influx", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - irongrid
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: irongrid-grafana
+    restart: unless-stopped
+    profiles: ["grafana", "full"]
+    environment:
+      GF_SECURITY_ALLOW_EMBEDDING: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    volumes:
+      - irongrid-grafana-data:/var/lib/grafana
+    networks:
+      - irongrid
+
+  rustdesk-hbbs:
+    image: rustdesk/rustdesk-server:latest
+    container_name: irongrid-hbbs
+    restart: unless-stopped
+    profiles: ["remote", "full"]
+    command: hbbs -r rustdesk-hbbr:21117
+    volumes:
+      - irongrid-rustdesk-data:/root
+    ports:
+      - "${RUSTDESK_HBBS_PORT:-21115}:21115"
+      - "${RUSTDESK_RENDEZVOUS_TCP_PORT:-21116}:21116/tcp"
+      - "${RUSTDESK_RENDEZVOUS_UDP_PORT:-21116}:21116/udp"
+      - "${RUSTDESK_WEB_CLIENT_PORT:-21118}:21118"
+    depends_on:
+      - rustdesk-hbbr
+    networks:
+      - irongrid
+
+  rustdesk-hbbr:
+    image: rustdesk/rustdesk-server:latest
+    container_name: irongrid-hbbr
+    restart: unless-stopped
+    profiles: ["remote", "full"]
+    command: hbbr
+    volumes:
+      - irongrid-rustdesk-data:/root
+    ports:
+      - "${RUSTDESK_RELAY_PORT:-21117}:21117"
+      - "${RUSTDESK_RELAY_WEB_PORT:-21119}:21119"
+    networks:
+      - irongrid
+
+networks:
+  irongrid:
+    name: irongrid-net
+
+volumes:
+  irongrid-pg-data:
+  irongrid-influx-data:
+  irongrid-influx-config:
+  irongrid-grafana-data:
+  irongrid-rustdesk-data:
+```
+
+Start the stack:
 
 ```bash
-docker compose config
 docker compose pull
 docker compose up -d
-docker compose ps
 ```
 
-To start IronGrid with Grafana and RustDesk:
+To start with Grafana and RustDesk:
 
 ```bash
-docker compose pull
 docker compose --profile full up -d
-docker compose ps
 ```
 
-### Access
+## RustDesk public key
 
-Open in your browser:
-
-```text
-http://SERVER_IP:3001
-```
-
-Initial login:
-
-```text
-User: admin
-Password: admin
-```
-
-### RustDesk
-
-When IronGrid is started with the `remote` or `full` profile, get the public key:
+After starting with the `remote` or `full` profile:
 
 ```bash
 docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
 cat ./id_ed25519.pub
 ```
 
-Use this public key in the IronGrid Agent Management screen. The private key `id_ed25519` must remain protected on the server.
+Use this key in the `Agent Management` screen.
 
-### Basic Management
+## Basic management
 
 ```bash
 docker compose ps
 docker compose logs -f --tail=200 app
 docker compose restart
 docker compose down
-docker compose up -d
-docker compose --profile full up -d
 ```
 
-### Support the Project
+## Support
 
-IronGrid development and maintenance require time, infrastructure, test equipment, and resources to keep the project moving forward.
-
-PIX contribution:
-
-```text
-PIX CPF: 558252491-68
-PIX E-mail: sachelaride@gmail.com
-```
-
-International USD contribution:
-
-```text
-Beneficiary: GERMAN DE OLIVEIRA SACHELARIDE
-Beneficiary bank: Banco Inter S.A.
-SWIFT: ITEMBRSP
-IBAN: BR2800416968000010011233613C1
-Intermediary bank: JP Morgan Chase N.A.
-Intermediary bank SWIFT: CHASUS33
-ABA: 021000021
-Account: 360556937
-```
-
-### Support and Contact
-
-German Sachelaride - Network Analyst
-
-```text
-E-mail: sachelaride@gmail.com
+German Sachelaride  
+Email: sachelaride@gmail.com  
 Phone: +55 67 99859-9051
-```
 
-IronGrid Limited 369 - Monitoring, Management, SNMP, Syslog, Grafana, and RustDesk.
+PIX donations: 558252491-68 or sachelaride@gmail.com
 
----
+## Execution modes
 
-## Espanol
-
-IronGrid Limited 369 es una edicion limitada de IronGrid, disponible gratuitamente para la comunidad a traves de Docker Hub.
-
-IronGrid es una plataforma para monitoreo y gestion de infraestructura de redes y servidores. Reune SNMP, Syslog, inventario de activos, IPAM, metricas, Grafana e integracion con RustDesk.
-
-IronGrid Limited 369 es una edicion funcional, preparada para uso en entornos reales, con limites especificos en comparacion con la version completa.
-
-### Imagen Docker
-
-Imagen oficial de la edicion limitada:
-
-```text
-sachelaride/irongrid-limited-369
-```
-
-Tags disponibles:
-
-```text
-sachelaride/irongrid-limited-369:latest
-sachelaride/irongrid-limited-369:limited-369
-```
-
-Para entornos de produccion que requieren previsibilidad, prefiera la tag fija de la edicion:
-
-```yaml
-image: sachelaride/irongrid-limited-369:limited-369
-```
-
-Para seguir la version mas reciente:
-
-```yaml
-image: sachelaride/irongrid-limited-369:latest
-```
-
-**Atencion:** la tag `latest` puede recibir actualizaciones futuras.
-
-### Que esta incluido
-
-- frontend de la aplicacion
-- backend
-- gestion de activos
-- monitoreo de red
-- monitoreo SNMP
-- Syslog
-- agentes para descarga
-- integraciones de IronGrid
-- integracion con Grafana
-- integracion con RustDesk
-- recursos de inventario y gestion de infraestructura
-
-### Requisitos
-
-La instalacion debe realizarse en un servidor Linux con soporte para Docker.
+Essential installation, without Grafana and without RustDesk:
 
 ```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin openssl
-sudo systemctl enable --now docker
-docker --version
-docker compose version
-```
-
-### Instalacion rapida
-
-Cree el directorio de instalacion:
-
-```bash
-sudo mkdir -p /opt/irongrid
-cd /opt/irongrid
-```
-
-Cree el archivo `.env`:
-
-```bash
-nano .env
-```
-
-Use contrasenas y tokens propios y seguros:
-
-```env
-NODE_ENV=production
-DEV_PORT=3001
-DEBUG=false
-
-IRONGRID_EDITION=limited
-IRONGRID_GRAFANA_CHART_LIMIT=69
-
-IRONGRID_HTTP_PORT=3001
-IRONGRID_SYSLOG_PORT=514
-
-POSTGRES_USER=irongrid
-POSTGRES_PASSWORD=REEMPLAZAR_POR_CONTRASENA_SEGURA
-POSTGRES_DB=irongrid_db
-
-DATABASE_URL=postgresql://irongrid:REEMPLAZAR_POR_CONTRASENA_SEGURA@db:5432/irongrid_db?schema=public
-SYSLOG_DATABASE_URL=postgresql://irongrid:REEMPLAZAR_POR_CONTRASENA_SEGURA@db:5432/irongrid_db?schema=public
-
-JWT_SECRET=REEMPLAZAR_POR_SECRETO_SEGURO_32_CHARS_O_MAS
-AGENT_INGEST_TOKEN=REEMPLAZAR_POR_TOKEN_SEGURO_16_CHARS_O_MAS
-
-ALLOWED_ORIGIN=http://IP_DEL_SERVIDOR:3001
-
-INFLUX_URL=http://influxdb:8086
-INFLUX_INIT_USERNAME=admin
-INFLUX_INIT_PASSWORD=REEMPLAZAR_POR_CONTRASENA_SEGURA_INFLUX
-INFLUX_ORG=irongrid
-INFLUX_BUCKET=metrics
-INFLUX_TOKEN=REEMPLAZAR_POR_TOKEN_SEGURO_INFLUX
-
-GRAFANA_PORT=3000
-
-RUSTDESK_HBBS_PORT=21115
-RUSTDESK_RENDEZVOUS_TCP_PORT=21116
-RUSTDESK_RENDEZVOUS_UDP_PORT=21116
-RUSTDESK_RELAY_PORT=21117
-RUSTDESK_WEB_CLIENT_PORT=21118
-RUSTDESK_RELAY_WEB_PORT=21119
-```
-
-Cree el archivo `docker-compose.yml` segun el tutorial completo:
-
-https://sachelaride.github.io/IronGrid-369/index-es.html
-
----
-
-Valide e inicie:
-
-```bash
-docker compose config
-docker compose pull
 docker compose up -d
-docker compose ps
 ```
 
-Para iniciar IronGrid con Grafana y RustDesk:
+With Grafana:
 
 ```bash
-docker compose pull
-docker compose --profile full up -d
-docker compose ps
+docker compose --profile grafana up -d
 ```
 
-### Acceso
-
-Abra en el navegador:
-
-```text
-http://IP_DEL_SERVIDOR:3001
-```
-
-Login inicial:
-
-```text
-Usuario: admin
-Contrasena: admin
-```
-
-### RustDesk
-
-Cuando IronGrid se inicia con el perfil `remote` o `full`, obtenga la clave publica:
+With RustDesk:
 
 ```bash
-docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
-cat ./id_ed25519.pub
+docker compose --profile remote up -d
 ```
 
-Use esta clave publica en la pantalla Gestion de Agentes de IronGrid. La clave privada `id_ed25519` debe permanecer protegida en el servidor.
-
-### Gestion basica
+Complete mode, with Grafana and RustDesk:
 
 ```bash
-docker compose ps
-docker compose logs -f --tail=200 app
-docker compose restart
-docker compose down
-docker compose up -d
 docker compose --profile full up -d
 ```
 
-### Apoye el proyecto
-
-El desarrollo y mantenimiento de IronGrid requieren tiempo, infraestructura, equipos de prueba y recursos para continuar el proyecto.
-
-Contribucion via PIX:
+RustDesk ports used on the server:
 
 ```text
-PIX CPF: 558252491-68
-PIX E-mail: sachelaride@gmail.com
+21115/tcp
+21116/tcp
+21116/udp
+21117/tcp
+21118/tcp
+21119/tcp
 ```
 
-Contribucion internacional en USD:
-
-```text
-Beneficiario: GERMAN DE OLIVEIRA SACHELARIDE
-Banco beneficiario: Banco Inter S.A.
-SWIFT: ITEMBRSP
-IBAN: BR2800416968000010011233613C1
-Banco intermediario: JP Morgan Chase N.A.
-SWIFT banco intermediario: CHASUS33
-ABA: 021000021
-Account: 360556937
-```
-
-### Soporte y contacto
-
-German Sachelaride - Analista de Network
-
-```text
-E-mail: sachelaride@gmail.com
-Telefono: +55 67 99859-9051
-```
-
-IronGrid Limited 369 - Monitoreo, Gestion, SNMP, Syslog, Grafana y RustDesk.
-## Deutsch
-
-Limitierte Edition von IronGrid, kostenlos fur die Community uber Docker Hub bereitgestellt.
-
-IronGrid ist eine Plattform fur Monitoring und Verwaltung von Netzwerk- und Serverinfrastruktur. Sie vereint SNMP, Syslog, Asset-Inventar, IPAM, Metriken, Grafana und RustDesk-Integration.
-
-Die IronGrid Limited 369 ist eine funktionsfahige Edition fur reale Umgebungen, mit bestimmten Grenzen im Vergleich zur Vollversion.
-
-### Docker-Image
-
-Das offizielle Image der limitierten Edition ist auf Docker Hub verfugbar:
-
-```text
-sachelaride/irongrid-limited-369
-```
-
-Verfugbare Tags:
-
-```text
-sachelaride/irongrid-limited-369:latest
-sachelaride/irongrid-limited-369:limited-369
-```
-
-Fur Produktionsumgebungen, die Vorhersehbarkeit erfordern, verwenden Sie bevorzugt einen spezifischen Tag:
-
-```yaml
-image: sachelaride/irongrid-limited-369:limited-369
-```
-
-Fur die neueste Version:
-
-```yaml
-image: sachelaride/irongrid-limited-369:latest
-```
-
-**Achtung:** Der Tag `latest` kann zukunftige Aktualisierungen erhalten.
-
-### Enthaltene Komponenten
-
-- Anwendungs-Frontend
-- Backend
-- Asset-Verwaltung
-- Netzwerk-Monitoring
-- SNMP-Monitoring
-- Syslog
-- Agenten zum Download
-- IronGrid-Integrationen
-- Grafana-Integration
-- RustDesk-Integration
-- Inventar- und Infrastrukturverwaltungsfunktionen
-
-### Anforderungen
-
-Die Installation sollte auf einem Linux-Server mit Docker-Unterstutzung erfolgen.
+After RustDesk is running, view the public key with:
 
 ```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin openssl
-sudo systemctl enable --now docker
-docker --version
-docker compose version
+docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub && cat ./id_ed25519.pub
 ```
-
-### Schnelle Installation
-
-Erstellen Sie das Installationsverzeichnis:
-
-```bash
-sudo mkdir -p /opt/irongrid
-cd /opt/irongrid
-```
-
-Erstellen Sie die Datei `.env`:
-
-```bash
-nano .env
-```
-
-Verwenden Sie eigene, starke Passworte und Tokens.
-
-Das vollstandige Tutorial ist hier verfugbar:
-
-https://sachelaride.github.io/IronGrid-369/index-de.html
-
-Starten:
-
-```bash
-docker compose config
-docker compose pull
-docker compose up -d
-docker compose ps
-```
-
-Um auch Grafana und RustDesk zu starten:
-
-```bash
-docker compose pull
-docker compose --profile full up -d
-docker compose ps
-```
-
-### Zugriff
-
-Im Browser offnen:
-
-```text
-http://IP_DO_SERVIDOR:3001
-```
-
-Erster Login:
-
-```text
-Benutzer: admin
-Passwort: admin
-```
-
-### RustDesk
-
-Wenn IronGrid mit dem Profil `remote` oder `full` gestartet wird, holen Sie den offentlichen Schlussel:
-
-```bash
-docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
-cat ./id_ed25519.pub
-```
-
-Der offentliche Schlussel muss in der IronGrid-Agentenverwaltung verwendet werden. Der private Schlussel `id_ed25519` muss auf dem Server geschutzt bleiben.
-
-### Grundlegende Verwaltung
-
-```bash
-docker compose ps
-docker compose logs -f --tail=200 app
-docker compose restart
-docker compose down
-docker compose up -d
-docker compose --profile full up -d
-```
-
-
----
-
-## Francais
-
-Edition limitee d'IronGrid, mise gratuitement a disposition de la communaute via Docker Hub.
-
-IronGrid est une plateforme de supervision et de gestion d'infrastructure reseau et serveur. Elle regroupe SNMP, Syslog, inventaire des actifs, IPAM, metriques, Grafana et integration RustDesk.
-
-IronGrid Limited 369 est une edition fonctionnelle, adaptee aux environnements reels, avec des limites specifiques par rapport a la version complete.
-
-### Image Docker
-
-L'image officielle de l'edition limitee est disponible sur Docker Hub:
-
-```text
-sachelaride/irongrid-limited-369
-```
-
-Tags disponibles:
-
-```text
-sachelaride/irongrid-limited-369:latest
-sachelaride/irongrid-limited-369:limited-369
-```
-
-Pour les environnements de production qui demandent de la previsibilite, preferez un tag specifique:
-
-```yaml
-image: sachelaride/irongrid-limited-369:limited-369
-```
-
-Pour suivre la version la plus recente:
-
-```yaml
-image: sachelaride/irongrid-limited-369:latest
-```
-
-**Attention:** le tag `latest` pourra recevoir des mises a jour futures.
-
-### Ce qui est inclus
-
-- frontend de l'application
-- backend
-- gestion des actifs
-- supervision reseau
-- supervision SNMP
-- Syslog
-- agents a telecharger
-- integrations IronGrid
-- integration Grafana
-- integration RustDesk
-- fonctions d'inventaire et de gestion d'infrastructure
-
-### Prerequis
-
-L'installation doit etre effectuee sur un serveur Linux avec Docker.
-
-```bash
-sudo apt update
-sudo apt install -y docker.io docker-compose-plugin openssl
-sudo systemctl enable --now docker
-docker --version
-docker compose version
-```
-
-### Installation rapide
-
-Creez le repertoire d'installation:
-
-```bash
-sudo mkdir -p /opt/irongrid
-cd /opt/irongrid
-```
-
-Creez le fichier `.env`:
-
-```bash
-nano .env
-```
-
-Utilisez vos propres mots de passe et tokens forts.
-
-Le tutoriel complet est disponible ici:
-
-https://sachelaride.github.io/IronGrid-369/index-fr.html
-
-Demarrez:
-
-```bash
-docker compose config
-docker compose pull
-docker compose up -d
-docker compose ps
-```
-
-Pour demarrer aussi Grafana et RustDesk:
-
-```bash
-docker compose pull
-docker compose --profile full up -d
-docker compose ps
-```
-
-### Acces
-
-Ouvrez dans le navigateur:
-
-```text
-http://IP_DU_SERVEUR:3001
-```
-
-Connexion initiale:
-
-```text
-Utilisateur: admin
-Mot de passe: admin
-```
-
-### RustDesk
-
-Lorsque IronGrid est lance avec le profil `remote` ou `full`, recuperez la cle publique:
-
-```bash
-docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
-cat ./id_ed25519.pub
-```
-
-Cette cle publique doit etre utilisee dans l'ecran Gestion des Agents d'IronGrid. La cle privee `id_ed25519` doit rester protegee sur le serveur.
-
-### Gestion de base
-
-```bash
-docker compose ps
-docker compose logs -f --tail=200 app
-docker compose restart
-docker compose down
-docker compose up -d
-docker compose --profile full up -d
-```
-
