@@ -5,14 +5,18 @@
 - Portugues: https://sachelaride.github.io/IronGrid-369/index.html
 - English: https://sachelaride.github.io/IronGrid-369/index-en.html
 - Espanol: https://sachelaride.github.io/IronGrid-369/index-es.html
+- Deutsch: https://sachelaride.github.io/IronGrid-369/index-de.html
+- Francais: https://sachelaride.github.io/IronGrid-369/index-fr.html
 
 ---
 
-## Idiomas / Languages / Idiomas
+## Idiomas / Languages / Idiomas / Sprachen
 
 - [Portugues](#portugues)
 - [English](#english)
 - [Espanol](#espanol)
+- [Deutsch](#deutsch)
+- [Francais](#francais)
 
 ---
 
@@ -570,6 +574,8 @@ Cree el archivo `docker-compose.yml` segun el tutorial completo:
 
 https://sachelaride.github.io/IronGrid-369/index-es.html
 
+---
+
 Valide e inicie:
 
 ```bash
@@ -658,3 +664,282 @@ Telefono: +55 67 99859-9051
 ```
 
 IronGrid Limited 369 - Monitoreo, Gestion, SNMP, Syslog, Grafana y RustDesk.
+## Deutsch
+
+Limitierte Edition von IronGrid, kostenlos fur die Community uber Docker Hub bereitgestellt.
+
+IronGrid ist eine Plattform fur Monitoring und Verwaltung von Netzwerk- und Serverinfrastruktur. Sie vereint SNMP, Syslog, Asset-Inventar, IPAM, Metriken, Grafana und RustDesk-Integration.
+
+Die IronGrid Limited 369 ist eine funktionsfahige Edition fur reale Umgebungen, mit bestimmten Grenzen im Vergleich zur Vollversion.
+
+### Docker-Image
+
+Das offizielle Image der limitierten Edition ist auf Docker Hub verfugbar:
+
+```text
+sachelaride/irongrid-limited-369
+```
+
+Verfugbare Tags:
+
+```text
+sachelaride/irongrid-limited-369:latest
+sachelaride/irongrid-limited-369:limited-369
+```
+
+Fur Produktionsumgebungen, die Vorhersehbarkeit erfordern, verwenden Sie bevorzugt einen spezifischen Tag:
+
+```yaml
+image: sachelaride/irongrid-limited-369:limited-369
+```
+
+Fur die neueste Version:
+
+```yaml
+image: sachelaride/irongrid-limited-369:latest
+```
+
+**Achtung:** Der Tag `latest` kann zukunftige Aktualisierungen erhalten.
+
+### Enthaltene Komponenten
+
+- Anwendungs-Frontend
+- Backend
+- Asset-Verwaltung
+- Netzwerk-Monitoring
+- SNMP-Monitoring
+- Syslog
+- Agenten zum Download
+- IronGrid-Integrationen
+- Grafana-Integration
+- RustDesk-Integration
+- Inventar- und Infrastrukturverwaltungsfunktionen
+
+### Anforderungen
+
+Die Installation sollte auf einem Linux-Server mit Docker-Unterstutzung erfolgen.
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin openssl
+sudo systemctl enable --now docker
+docker --version
+docker compose version
+```
+
+### Schnelle Installation
+
+Erstellen Sie das Installationsverzeichnis:
+
+```bash
+sudo mkdir -p /opt/irongrid
+cd /opt/irongrid
+```
+
+Erstellen Sie die Datei `.env`:
+
+```bash
+nano .env
+```
+
+Verwenden Sie eigene, starke Passworte und Tokens.
+
+Das vollstandige Tutorial ist hier verfugbar:
+
+https://sachelaride.github.io/IronGrid-369/index-de.html
+
+Starten:
+
+```bash
+docker compose config
+docker compose pull
+docker compose up -d
+docker compose ps
+```
+
+Um auch Grafana und RustDesk zu starten:
+
+```bash
+docker compose pull
+docker compose --profile full up -d
+docker compose ps
+```
+
+### Zugriff
+
+Im Browser offnen:
+
+```text
+http://IP_DO_SERVIDOR:3001
+```
+
+Erster Login:
+
+```text
+Benutzer: admin
+Passwort: admin
+```
+
+### RustDesk
+
+Wenn IronGrid mit dem Profil `remote` oder `full` gestartet wird, holen Sie den offentlichen Schlussel:
+
+```bash
+docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
+cat ./id_ed25519.pub
+```
+
+Der offentliche Schlussel muss in der IronGrid-Agentenverwaltung verwendet werden. Der private Schlussel `id_ed25519` muss auf dem Server geschutzt bleiben.
+
+### Grundlegende Verwaltung
+
+```bash
+docker compose ps
+docker compose logs -f --tail=200 app
+docker compose restart
+docker compose down
+docker compose up -d
+docker compose --profile full up -d
+```
+
+
+---
+
+## Francais
+
+Edition limitee d'IronGrid, mise gratuitement a disposition de la communaute via Docker Hub.
+
+IronGrid est une plateforme de supervision et de gestion d'infrastructure reseau et serveur. Elle regroupe SNMP, Syslog, inventaire des actifs, IPAM, metriques, Grafana et integration RustDesk.
+
+IronGrid Limited 369 est une edition fonctionnelle, adaptee aux environnements reels, avec des limites specifiques par rapport a la version complete.
+
+### Image Docker
+
+L'image officielle de l'edition limitee est disponible sur Docker Hub:
+
+```text
+sachelaride/irongrid-limited-369
+```
+
+Tags disponibles:
+
+```text
+sachelaride/irongrid-limited-369:latest
+sachelaride/irongrid-limited-369:limited-369
+```
+
+Pour les environnements de production qui demandent de la previsibilite, preferez un tag specifique:
+
+```yaml
+image: sachelaride/irongrid-limited-369:limited-369
+```
+
+Pour suivre la version la plus recente:
+
+```yaml
+image: sachelaride/irongrid-limited-369:latest
+```
+
+**Attention:** le tag `latest` pourra recevoir des mises a jour futures.
+
+### Ce qui est inclus
+
+- frontend de l'application
+- backend
+- gestion des actifs
+- supervision reseau
+- supervision SNMP
+- Syslog
+- agents a telecharger
+- integrations IronGrid
+- integration Grafana
+- integration RustDesk
+- fonctions d'inventaire et de gestion d'infrastructure
+
+### Prerequis
+
+L'installation doit etre effectuee sur un serveur Linux avec Docker.
+
+```bash
+sudo apt update
+sudo apt install -y docker.io docker-compose-plugin openssl
+sudo systemctl enable --now docker
+docker --version
+docker compose version
+```
+
+### Installation rapide
+
+Creez le repertoire d'installation:
+
+```bash
+sudo mkdir -p /opt/irongrid
+cd /opt/irongrid
+```
+
+Creez le fichier `.env`:
+
+```bash
+nano .env
+```
+
+Utilisez vos propres mots de passe et tokens forts.
+
+Le tutoriel complet est disponible ici:
+
+https://sachelaride.github.io/IronGrid-369/index-fr.html
+
+Demarrez:
+
+```bash
+docker compose config
+docker compose pull
+docker compose up -d
+docker compose ps
+```
+
+Pour demarrer aussi Grafana et RustDesk:
+
+```bash
+docker compose pull
+docker compose --profile full up -d
+docker compose ps
+```
+
+### Acces
+
+Ouvrez dans le navigateur:
+
+```text
+http://IP_DU_SERVEUR:3001
+```
+
+Connexion initiale:
+
+```text
+Utilisateur: admin
+Mot de passe: admin
+```
+
+### RustDesk
+
+Lorsque IronGrid est lance avec le profil `remote` ou `full`, recuperez la cle publique:
+
+```bash
+docker cp irongrid-hbbs:/root/id_ed25519.pub ./id_ed25519.pub
+cat ./id_ed25519.pub
+```
+
+Cette cle publique doit etre utilisee dans l'ecran Gestion des Agents d'IronGrid. La cle privee `id_ed25519` doit rester protegee sur le serveur.
+
+### Gestion de base
+
+```bash
+docker compose ps
+docker compose logs -f --tail=200 app
+docker compose restart
+docker compose down
+docker compose up -d
+docker compose --profile full up -d
+```
+
