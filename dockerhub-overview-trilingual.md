@@ -278,6 +278,24 @@ Fone: (67) 9.9859-9051
 
 Doacoes PIX: 558252491-68 ou sachelaride@gmail.com
 
+Canal bancario em dolar americano (USD) para contribuicoes internacionais:
+
+```text
+Banco Intermediario (Field 56):
+JP Morgan Chase N.A.
+SWIFT: CHASUS33
+ABA: 021000021
+Account: 360556937
+
+Banco Final (Field 57):
+Beneficiary Bank: Banco Inter SA
+SWIFT: ITEMBRSP
+
+Beneficiario (Field 59):
+Beneficiary in Brazil: GERMAN DE OLIVEIRA SACHELARIDE
+IBAN: BR2800416968000010011233613C1
+```
+
 ## Modos de execucao
 
 Instalacao essencial, sem Grafana e sem RustDesk:
@@ -586,6 +604,24 @@ Email: sachelaride@gmail.com
 Phone: +55 67 99859-9051
 
 PIX donations: 558252491-68 or sachelaride@gmail.com
+
+Bank channel in US dollars (USD) for international contributions:
+
+```text
+Intermediary Bank (Field 56):
+JP Morgan Chase N.A.
+SWIFT: CHASUS33
+ABA: 021000021
+Account: 360556937
+
+Final Bank (Field 57):
+Beneficiary Bank: Banco Inter SA
+SWIFT: ITEMBRSP
+
+Beneficiary (Field 59):
+Beneficiary in Brazil: GERMAN DE OLIVEIRA SACHELARIDE
+IBAN: BR2800416968000010011233613C1
+```
 
 ## Execution modes
 
